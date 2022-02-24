@@ -38,35 +38,31 @@ for i = 1:length(data_dir) - 4
         a2_g = [a2_g; data(i).a2_g];
         a3_g = [a3_g; data(i).a3_g];
     end
-    clear temp i;
 end
+clear data temp i;
 load profiles\epsi\PressureTimeseries.mat;
 load profiles\epsi\TimeIndex.mat;
-save profiles\epsi\concatenated.mat;
+save concatenated.mat;
 
 %% load concatenated file
 load concatenated.mat;
+% create concatenated struct called data
+data.dnum = dnum;
+data.s1_volt = s1_volt;
+data.s2_volt = s2_volt;
+data.t1_volt = t1_volt;
+data.t2_volt = t2_volt;
+data.a1_g = a1_g;
+data.a2_g = a2_g;
+data.a3_g = a3_g;
+data.PressureTimeseries = PressureTimeseries;
+data.TimeIndex = TimeIndex;
 
 %% pick a single profile
-profile_num = 1;
-pressure_mask = diff(PressureTimeseries.P) < 0;
-P = PressureTimeseries.P(pressure_mask);
-P_dnum = PressureTimeseries.dnum(pressure_mask);
-[pks, idx] = findpeaks(diff(P_dnum), "Threshold", 0.06);
-profile.P = P(idx(profile_num) + 1:idx(profile_num + 1));
-profile.P_dnum = P_dnum(idx(profile_num) + 1:idx(profile_num + 1));
-profile.start = profile.P_dnum(1);
-profile.end = profile.P_dnum(end);
-epsi_mask = (dnum > profile.start) & (dnum < profile.end);
-profile.dnum = dnum(epsi_mask);
-profile.s2_volt = s2_volt(epsi_mask);
-profile.t2_volt = t2_volt(epsi_mask);
-profile.a1_g = a1_g(epsi_mask);
-profile.a2_g = a2_g(epsi_mask);
-profile.a3_g = a3_g(epsi_mask);
+profile_num = 6;
+profile = pick_profile(data, profile_num);
+
 %% plot shear and pressure for a single profile
-% handle outliers
-profile.s2_volt(892592:893001) = 0;
 figure(1)
 clf
 yyaxis left
@@ -80,20 +76,42 @@ plot(profile.dnum, profile.s2_volt)%, profile.dnum, profile.s2_volt);
 datetick('x', 13)
 title({'Single APEX-epsi Profile', sprintf('%s', datetime(mean(profile.dnum),'ConvertFrom','datenum', 'Format', 'dd-MMM-uuuu'))})
 xlabel('Time')
-%% pull out indices for 10 noisy sections and 10 good sections
 
-% low_noise_idx = [190286:193857, 203597:207200, 217202:220852, 230892:234555, 244333:247891,...
-%     257875:261569, 271539:275521, 285495:288909, 298876:302573, 312576:316243,...
-%     326239:329915, 339904:343584];
+%%
+figure
+plot(profile.s2_volt)
+% starts of high noise sections
+
+%% pull out indices for 10 noisy sections and 10 good sections from profile #1
+
 low_noise_num_samples = 3600;
 high_noise_num_samples = 9500;
 transition_buffer = 250;
-low_noise_idx = [190236:190236 + low_noise_num_samples; 203597:203597 + low_noise_num_samples;...
-    217202:217202 + low_noise_num_samples; 230892:230892 + low_noise_num_samples;...
-    244280:244280 + low_noise_num_samples; 257875:257875 + low_noise_num_samples;...
-    271539:271539 + low_noise_num_samples;... %285495:285495 + num_samples;...
-    298876:298876 + low_noise_num_samples; 312576:312576 + low_noise_num_samples;...
-    326239:326239 + low_noise_num_samples; 339904:339904 + low_noise_num_samples];
+if profile_num == 1
+    low_noise_idx = [190236:190236 + low_noise_num_samples; 203597:203597 + low_noise_num_samples;...
+        217202:217202 + low_noise_num_samples; 230892:230892 + low_noise_num_samples;...
+        244280:244280 + low_noise_num_samples; 257875:257875 + low_noise_num_samples;...
+        271539:271539 + low_noise_num_samples;... %285495:285495 + num_samples;...
+        298876:298876 + low_noise_num_samples; 312576:312576 + low_noise_num_samples;...
+        326239:326239 + low_noise_num_samples; 339904:339904 + low_noise_num_samples];
+    high_noise_idx = nan(size(low_noise_idx, 1), high_noise_num_samples + 1);
+    for i = 1:size(low_noise_idx, 1)
+        high_noise_idx(i, :) = low_noise_idx(i, end) + transition_buffer:...
+        low_noise_idx(i, end) + transition_buffer + high_noise_num_samples;
+    end
+elseif profile_num == 6
+    low_noise_num_samples = 9500;
+    high_noise_sample_nums = [917771, 931154, 1528750, 1542140, 2139430, 2454510];
+    low_noise_sample_nums = [76036, 386691, 651981, 1685480, 1854840, 2048600];
+    high_noise_idx = zeros(length(high_noise_sample_nums), high_noise_num_samples + 1);
+    low_noise_idx = zeros(length(low_noise_sample_nums), low_noise_num_samples + 1);
+    for i = 1:length(high_noise_sample_nums)
+        high_noise_idx(i, :) = [high_noise_sample_nums(i):high_noise_sample_nums(i) + high_noise_num_samples];
+    end
+    for i = 1:length(low_noise_sample_nums)
+        low_noise_idx(i, :) = [low_noise_sample_nums(i):low_noise_sample_nums(i) + low_noise_num_samples];
+    end
+end
 low_noise_s2_volt = nan(size(low_noise_idx));
 low_noise_a1 = nan(size(low_noise_idx));
 low_noise_a2 = nan(size(low_noise_idx));
@@ -104,14 +122,11 @@ for i = 1:size(low_noise_s2_volt, 1)
     low_noise_a2(i, :) = profile.a2_g(low_noise_idx(i, :));
     low_noise_a3(i, :) = profile.a3_g(low_noise_idx(i, :));
 end
-high_noise_idx = nan(size(low_noise_idx, 1), high_noise_num_samples + 1);
 high_noise_s2_volt = nan(size(low_noise_idx, 1), high_noise_num_samples + 1);
 high_noise_a1 = nan(size(low_noise_idx, 1), high_noise_num_samples + 1);
 high_noise_a2 = nan(size(low_noise_idx, 1), high_noise_num_samples + 1);
 high_noise_a3 = nan(size(low_noise_idx, 1), high_noise_num_samples + 1);
-for i = 1:size(low_noise_idx, 1)
-    high_noise_idx(i, :) = low_noise_idx(i, end) + transition_buffer:...
-        low_noise_idx(i, end) + transition_buffer + high_noise_num_samples;
+for i = 1:size(high_noise_idx, 1)
     high_noise_s2_volt(i, :) = profile.s2_volt(high_noise_idx(i, :));
     high_noise_a1(i, :) = profile.a1_g(high_noise_idx(i, :));
     high_noise_a2(i, :) = profile.a2_g(high_noise_idx(i, :));
@@ -135,13 +150,18 @@ ylim([-.01, .01])
 xlabel('Sample Number')
 ylabel('Shear (Volts)')
 title(sprintf('%d selected high noise measurements', size(high_noise_idx, 1)))
+% legend('1', '2', '3', '4', '5', '6')
 
 %% compute spectra for both low and high noise data
 fs = 320;
 [low_noise_s2_volt_spectra, f_low] = pwelch(low_noise_s2_volt', [], [], [], fs);
 [high_noise_s2_volt_spectra, f_high] = pwelch(high_noise_s2_volt', [], [], [], fs);
+[low_noise_a1_spectra] = pwelch(low_noise_a1');
+[high_noise_a1_spectra] = pwelch(high_noise_a1');
 [low_noise_a2_spectra] = pwelch(low_noise_a2');
 [high_noise_a2_spectra] = pwelch(high_noise_a2');
+[low_noise_a3_spectra] = pwelch(low_noise_a3');
+[high_noise_a3_spectra] = pwelch(high_noise_a3');
 
 %% plot spectra for low and high noise data
 % low noise
@@ -160,6 +180,7 @@ ylim([10^-13, 10^-6])
 xlabel('Frequency (Hz)')
 ylabel('PSD (V^2/Hz)')
 title(sprintf('%d selected high noise spectra', size(low_noise_idx, 1)))
+
 % acceleration
 % figure(6)
 % loglog(f_high, high_noise_a3_spectra)
@@ -190,53 +211,56 @@ legend('High Noise', 'Low Noise', 'Location', 'north')
 sgtitle(['Single High Noise - Low Noise Comparison'])
 
 %% compare a single low-noise shear and acceleration in area with oscillations
-section_num = 10;
 figure(7)
 clf
-subplot(2, 1, 1)
+% subplot(2, 1, 1)
 yyaxis left
 plot(low_noise_s2_volt(section_num, :))
 ylim([-.01, .01])
 ylabel('Shear (Volts)')
 yyaxis right
-plot(low_noise_a2(section_num, :))
+plot(low_noise_a(section_num, :))
 xlabel('Sample Number')
 ylabel('Acceleration (g)')
-title('Data')
-legend('Shear', 'Acceleration', 'Location', 'southeast')
-subplot(2, 1, 2)
-yyaxis left
-loglog(f_low, low_noise_s2_volt_spectra(:, section_num))
-xlim([f_low(2), f_low(end)])
-xlabel('Frequency (Hz)')
-ylim([10^-13, 10^-6])
-ylabel('PSD (V^2/Hz)')
-yyaxis right
-loglog(f_low, low_noise_a2_spectra(:, section_num))
-ylabel('PSD(g^2/Hz)')
-ylim([10^-10, 10^-5])
-title('Spectra')
-legend('Shear', 'Acceleration', 'Location', 'north')
-sgtitle(['Single Low Noise Section Shear and Acceleration Comparison'])
+title('Single Low Noise Section Shear and a2 Comparison')
+legend('Shear', 'a2')
+% subplot(2, 1, 2)
+% yyaxis left
+% loglog(f_low, low_noise_s2_volt_spectra(:, section_num))
+% xlim([f_low(2), f_low(end)])
+% xlabel('Frequency (Hz)')
+% ylim([10^-14, 10^-9])
+% ylabel('PSD (V^2/Hz)')
+% yyaxis right
+% loglog(f_low, low_noise_a1_spectra(:, section_num))
+% ylabel('PSD(g^2/Hz)')
+% ylim([10^-7, 10^-2])
+% title('Spectra')
+% legend('Shear', 'Acceleration', 'Location', 'Southwest')
+% sgtitle(['Single Low Noise Section Shear and a1 Comparison'])
 % closer look at acceleration spectrum
 figure(8)
 clf
 yyaxis left
 loglog(f_low, low_noise_s2_volt_spectra(:, section_num))
-xlim([5, f_low(end)])
+xlim([f_low(2), f_low(end)])
 xlabel('Frequency (Hz)')
-ylim([10^-13, 10^-8])
+ylim([10^-14, 10^-9])
 ylabel('PSD (V^2/Hz)')
 yyaxis right
 loglog(f_low, low_noise_a2_spectra(:, section_num))
 ylabel('PSD(g^2/Hz)')
-ylim([10^-10, 10^-6])
-title('Single Low Noise Section Shear and Acceleration Spectra')
-legend('Shear', 'Acceleration', 'Location', 'north')
+ylim([10^-10, 10^-5])
+title('Single Low Noise Section Shear and a2 Spectra')
+legend('Shear', 'Acceleration', 'Location', 'Southwest')
 
 %% compute coherence
+low_noise_s2_a1_coherence = mscohere(low_noise_s2_volt', low_noise_a1');
+high_noise_s2_a1_coherence = mscohere(high_noise_s2_volt', high_noise_a1');
 low_noise_s2_a2_coherence = mscohere(low_noise_s2_volt', low_noise_a2');
 high_noise_s2_a2_coherence = mscohere(high_noise_s2_volt', high_noise_a2');
+low_noise_s2_a3_coherence = mscohere(low_noise_s2_volt', low_noise_a3');
+high_noise_s2_a3_coherence = mscohere(high_noise_s2_volt', high_noise_a3');
 
 %% plot coherence
 figure(9)
@@ -285,16 +309,35 @@ ylabel('Shear (Volts)')
 datetick
 
 %% plot pressure and rise speed of profiles
-rise_rate = diff(PressureTimeseries.P)/(diff(PressureTimeseries.dnum)*24*3600);
-figure
+rise_rate = -diff(PressureTimeseries.P)./(diff(PressureTimeseries.dnum)*24*3600);
+profile.rise_rate = -diff(profile.P)./(diff(profile.P_dnum)*24*3600);
+figure(13)
+clf
 yyaxis left
 plot(PressureTimeseries.dnum, PressureTimeseries.P)
+ylim([0 800])
 set(gca, 'YDir','reverse')
 ylabel('Pressure (dbar)')
 yyaxis right
 plot(PressureTimeseries.dnum(2:end), rise_rate)
+ylabel('Rise Rate (dbar/s)')
 xlabel('Time')
+datetick('x', 6)
+xlim([PressureTimeseries.dnum(5) PressureTimeseries.dnum(27964)])
 
+title({'APEX-epsi float pressure and rise rate', 'for standalone deployment Feb 2022'})
+figure(14)
+clf
+yyaxis left
+plot(profile.P_dnum, profile.P)
+set(gca, 'YDir','reverse')
+ylabel('Pressure (dbar)')
+yyaxis right
+plot(profile.P_dnum(2:end), profile.rise_rate)
+ylabel('Rise Rate (dbar/s)')
+xlabel('Time')
+datetick('x', 13)
+title({'APEX-epsi float pressure and rise rate', 'for single profile of standalone deployment Feb 2022'})
 %% plot shear and acceleration
 figure
 yyaxis left
@@ -302,3 +345,21 @@ plot(dnum, s1_volt)
 yyaxis right
 plot(dnum, a1_g, dnum, a2_g, dnum, a3_g)
 legend('s1', 'a1', 'a2', 'a3')
+
+
+
+
+
+%%
+function y = haf_oakey(f,w)
+    % haf_oakey
+    %   Usage: y = haf_oakey(f,w)
+    %	   f is frequency in a column vector, 
+    %      w is the fall rate
+    %   Function: Power transfer function of airfoil probe according
+    %   to Oakey
+    
+    lc=0.02;
+    y = 1 ./ (1 + (lc .* (f' / w) ).^2 );
+    y=y';
+end
