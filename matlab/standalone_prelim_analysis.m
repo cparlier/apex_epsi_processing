@@ -141,14 +141,14 @@ fs = 320;
 [low_noise_s2_volt_spectra, f_low] = pwelch(low_noise_s2_volt', [], [], [], fs);
 [high_noise_s2_volt_spectra, f_high] = pwelch(high_noise_s2_volt', [], [], [], fs);
 [low_noise_a2_spectra] = pwelch(low_noise_a2');
-[high_noise_a3_spectra] = pwelch(high_noise_a3');
+[high_noise_a2_spectra] = pwelch(high_noise_a2');
 
 %% plot spectra for low and high noise data
 % low noise
 figure(4)
 loglog(f_low, low_noise_s2_volt_spectra)
 xlim([f_low(2), f_low(end)])
-ylim([10^-14, 10^-4])
+ylim([10^-13, 10^-6])
 xlabel('Frequency (Hz)')
 ylabel('PSD (V^2/Hz)')
 title(sprintf('%d selected low noise spectra', size(low_noise_idx, 1)))
@@ -156,7 +156,7 @@ title(sprintf('%d selected low noise spectra', size(low_noise_idx, 1)))
 figure(5)
 loglog(f_high, high_noise_s2_volt_spectra)
 xlim([f_low(2), f_low(end)])
-ylim([10^-14, 10^-4])
+ylim([10^-13, 10^-6])
 xlabel('Frequency (Hz)')
 ylabel('PSD (V^2/Hz)')
 title(sprintf('%d selected high noise spectra', size(low_noise_idx, 1)))
@@ -176,17 +176,17 @@ ylim([-.01, .01])
 xlabel('Sample Number')
 ylabel('Shear (Volts)')
 title('Data')
-legend('Low Noise', 'High Noise', 'Location', 'north')
+legend('High Noise', 'Low Noise', 'Location', 'north')
 subplot(2, 1, 2)
-loglog(f_low, low_noise_s2_volt_spectra(:, section_num))
-hold on
 loglog(f_high, high_noise_s2_volt_spectra(:, section_num))
+hold on
+loglog(f_low, low_noise_s2_volt_spectra(:, section_num))
 xlim([f_low(2), f_low(end)])
-ylim([10^-14, 10^-4])
+ylim([10^-13, 10^-6])
 xlabel('Frequency (Hz)')
 ylabel('PSD (V^2/Hz)')
 title('Spectra')
-legend('Low Noise', 'High Noise', 'Location', 'north')
+legend('High Noise', 'Low Noise', 'Location', 'north')
 sgtitle(['Single High Noise - Low Noise Comparison'])
 
 %% compare a single low-noise shear and acceleration in area with oscillations
@@ -209,16 +209,72 @@ yyaxis left
 loglog(f_low, low_noise_s2_volt_spectra(:, section_num))
 xlim([f_low(2), f_low(end)])
 xlabel('Frequency (Hz)')
-ylim([10^-14, 10^-4])
-ylabel('PSD (g^2/Hz)')
+ylim([10^-13, 10^-6])
+ylabel('PSD (V^2/Hz)')
 yyaxis right
 loglog(f_low, low_noise_a2_spectra(:, section_num))
-ylabel('Acceleration (g)')
+ylabel('PSD(g^2/Hz)')
+ylim([10^-10, 10^-5])
 title('Spectra')
 legend('Shear', 'Acceleration', 'Location', 'north')
 sgtitle(['Single Low Noise Section Shear and Acceleration Comparison'])
-%% plot shear and pressure
+% closer look at acceleration spectrum
 figure(8)
+clf
+yyaxis left
+loglog(f_low, low_noise_s2_volt_spectra(:, section_num))
+xlim([5, f_low(end)])
+xlabel('Frequency (Hz)')
+ylim([10^-13, 10^-8])
+ylabel('PSD (V^2/Hz)')
+yyaxis right
+loglog(f_low, low_noise_a2_spectra(:, section_num))
+ylabel('PSD(g^2/Hz)')
+ylim([10^-10, 10^-6])
+title('Single Low Noise Section Shear and Acceleration Spectra')
+legend('Shear', 'Acceleration', 'Location', 'north')
+
+%% compute coherence
+low_noise_s2_a2_coherence = mscohere(low_noise_s2_volt', low_noise_a2');
+high_noise_s2_a2_coherence = mscohere(high_noise_s2_volt', high_noise_a2');
+
+%% plot coherence
+figure(9)
+clf
+semilogx(f_low, low_noise_s2_a2_coherence)
+xlim([0.3 160])
+xlabel('Frequency (Hz)')
+ylabel('Magnitude Squared Coherence')
+title({'Coherence between s2(V) and a2(g)', sprintf('for %d selected low noise measurements', size(high_noise_idx, 1))})
+figure(10)
+clf
+semilogx(f_high, high_noise_s2_a2_coherence)
+xlim([0.3 160])
+xlabel('Frequency (Hz)')
+ylabel('Magnitude Squared Coherence')
+title({'Coherence between s2(V) and a2(g)', sprintf('for %d selected high noise measurements', size(high_noise_idx, 1))})
+% now plot means
+figure(11)
+clf
+semilogx(f_low, mean(low_noise_s2_a2_coherence, 2))
+hold on
+semilogx(f_high, mean(high_noise_s2_a2_coherence, 2))
+xlim([0.3 160])
+xlabel('Frequency (Hz)')
+ylabel('Magnitude Squared Coherence')
+legend('Low Noise', 'High Noise')
+title({'Mean coherence between s2(V) and a2(g)', sprintf('for %d selected low and high noise measurements', size(high_noise_idx, 1))})
+% now plot just one
+section_num = 1;
+figure(12)
+clf
+semilogx(f_low, low_noise_s2_a2_coherence(:, section_num))
+xlim([0.3 160])
+xlabel('Frequency (Hz)')
+ylabel('Magnitude Squared Coherence')
+title({'Coherence between s2(V) and a2(g)', 'for a single low noise period (same one as above)'})
+%% plot shear and pressure
+figure
 yyaxis left
 ylabel('Pressure (dbar)')
 plot(PressureTimeseries.dnum, PressureTimeseries.P)
@@ -228,8 +284,38 @@ plot(dnum, s2_volt)
 ylabel('Shear (Volts)')
 datetick
 
+%% plot pressure and rise speed of profiles
+rise_rate = -diff(PressureTimeseries.P)./(diff(PressureTimeseries.dnum)*24*3600);
+profile.rise_rate = -diff(profile.P)./(diff(profile.P_dnum)*24*3600);
+figure(13)
+clf
+yyaxis left
+plot(PressureTimeseries.dnum, PressureTimeseries.P)
+ylim([0 800])
+set(gca, 'YDir','reverse')
+ylabel('Pressure (dbar)')
+yyaxis right
+plot(PressureTimeseries.dnum(2:end), rise_rate)
+ylabel('Rise Rate (dbar/s)')
+xlabel('Time')
+datetick('x', 6)
+xlim([PressureTimeseries.dnum(5) PressureTimeseries.dnum(27964)])
+
+title({'APEX-epsi float pressure and rise rate', 'for standalone deployment Feb 2022'})
+figure(14)
+clf
+yyaxis left
+plot(profile.P_dnum, profile.P)
+set(gca, 'YDir','reverse')
+ylabel('Pressure (dbar)')
+yyaxis right
+plot(profile.P_dnum(2:end), profile.rise_rate)
+ylabel('Rise Rate (dbar/s)')
+xlabel('Time')
+datetick('x', 13)
+title({'APEX-epsi float pressure and rise rate', 'for single profile of standalone deployment Feb 2022'})
 %% plot shear and acceleration
-figure(8)
+figure
 yyaxis left
 plot(dnum, s1_volt)
 yyaxis right
