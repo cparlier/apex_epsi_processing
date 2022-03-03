@@ -77,12 +77,19 @@ datetick('x', 13)
 title({'Single APEX-epsi Profile', sprintf('%s', datetime(mean(profile.dnum),'ConvertFrom','datenum', 'Format', 'dd-MMM-uuuu'))})
 xlabel('Time')
 
-%%
+%% quick zoomed in a1 plot
 figure
-plot(profile.s2_volt)
+start = 7.385370876794676e+05;
+finish = 7.385370879e+05;
+mask = profile.dnum > start & profile.dnum < finish;
+plot(profile.dnum(mask), profile.a1_g(mask));
+xlabel('time')
+datetick('x', 13)
+ylabel('a1 (g)')
+title({'Acceleration for APEX-epsi', 'standard ascent profile'})
 % starts of high noise sections
 
-%% pull out indices for 10 noisy sections and 10 good sections from profile #1
+%% pull out indices for 10 noisy sections and 10 good sections from profile #1 and #6 as applicable
 
 low_noise_num_samples = 3600;
 high_noise_num_samples = 9500;
@@ -154,21 +161,21 @@ title(sprintf('%d selected high noise measurements', size(high_noise_idx, 1)))
 
 %% compute spectra for both low and high noise data
 fs = 320;
-[low_noise_s2_volt_spectra, f_low] = pwelch(low_noise_s2_volt', [], [], [], fs);
-[high_noise_s2_volt_spectra, f_high] = pwelch(high_noise_s2_volt', [], [], [], fs);
-[low_noise_a1_spectra] = pwelch(low_noise_a1');
-[high_noise_a1_spectra] = pwelch(high_noise_a1');
-[low_noise_a2_spectra] = pwelch(low_noise_a2');
-[high_noise_a2_spectra] = pwelch(high_noise_a2');
-[low_noise_a3_spectra] = pwelch(low_noise_a3');
-[high_noise_a3_spectra] = pwelch(high_noise_a3');
+[low_noise_s2_volt_spectra, f_low] = pwelch(detrend(low_noise_s2_volt', 0), [], [], [], fs);
+[high_noise_s2_volt_spectra, f_high] = pwelch(detrend(high_noise_s2_volt', 0), [], [], [], fs);
+[low_noise_a1_spectra] = pwelch((detrend(low_noise_a1')));
+[high_noise_a1_spectra] = pwelch(detrend(high_noise_a1'));
+[low_noise_a2_spectra] = pwelch(detrend(low_noise_a2'));
+[high_noise_a2_spectra] = pwelch(detrend(high_noise_a2'));
+[low_noise_a3_spectra] = pwelch(detrend(low_noise_a3'));
+[high_noise_a3_spectra] = pwelch(detrend(high_noise_a3'));
 
 %% plot spectra for low and high noise data
 % low noise
 figure(4)
 loglog(f_low, low_noise_s2_volt_spectra)
 xlim([f_low(2), f_low(end)])
-ylim([10^-13, 10^-6])
+ylim([10^-14, 10^-7])
 xlabel('Frequency (Hz)')
 ylabel('PSD (V^2/Hz)')
 title(sprintf('%d selected low noise spectra', size(low_noise_idx, 1)))
@@ -176,7 +183,7 @@ title(sprintf('%d selected low noise spectra', size(low_noise_idx, 1)))
 figure(5)
 loglog(f_high, high_noise_s2_volt_spectra)
 xlim([f_low(2), f_low(end)])
-ylim([10^-13, 10^-6])
+ylim([10^-14, 10^-7])
 xlabel('Frequency (Hz)')
 ylabel('PSD (V^2/Hz)')
 title(sprintf('%d selected high noise spectra', size(low_noise_idx, 1)))
@@ -203,7 +210,7 @@ loglog(f_high, high_noise_s2_volt_spectra(:, section_num))
 hold on
 loglog(f_low, low_noise_s2_volt_spectra(:, section_num))
 xlim([f_low(2), f_low(end)])
-ylim([10^-13, 10^-6])
+ylim([10^-14, 10^-7])
 xlabel('Frequency (Hz)')
 ylabel('PSD (V^2/Hz)')
 title('Spectra')
@@ -250,17 +257,17 @@ ylabel('PSD (V^2/Hz)')
 yyaxis right
 loglog(f_low, low_noise_a3_spectra(:, section_num))
 ylabel('PSD(g^2/Hz)')
-ylim([10^-9, 10^-4])
+ylim([10^-10, 10^-7])
 title('Single Low Noise Section Shear and a3 Spectra')
 legend('Shear', 'Acceleration', 'Location', 'Southwest')
 
 %% compute coherence
-low_noise_s2_a1_coherence = mscohere(low_noise_s2_volt', low_noise_a1');
-high_noise_s2_a1_coherence = mscohere(high_noise_s2_volt', high_noise_a1');
-low_noise_s2_a2_coherence = mscohere(low_noise_s2_volt', low_noise_a2');
-high_noise_s2_a2_coherence = mscohere(high_noise_s2_volt', high_noise_a2');
-low_noise_s2_a3_coherence = mscohere(low_noise_s2_volt', low_noise_a3');
-high_noise_s2_a3_coherence = mscohere(high_noise_s2_volt', high_noise_a3');
+low_noise_s2_a1_coherence = mscohere(detrend(low_noise_s2_volt'), detrend(low_noise_a1'));
+high_noise_s2_a1_coherence = mscohere(detrend(high_noise_s2_volt'), detrend(high_noise_a1'));
+low_noise_s2_a2_coherence = mscohere(detrend(low_noise_s2_volt'), detrend(low_noise_a2'));
+high_noise_s2_a2_coherence = mscohere(detrend(high_noise_s2_volt'), detrend(high_noise_a2'));
+low_noise_s2_a3_coherence = mscohere(detrend(low_noise_s2_volt'), detrend(low_noise_a3'));
+high_noise_s2_a3_coherence = mscohere(detrend(high_noise_s2_volt'), detrend(high_noise_a3'));
 
 %% plot coherence
 figure(9)
