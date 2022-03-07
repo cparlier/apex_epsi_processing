@@ -34,8 +34,9 @@ hold off
 %% plot epsilon profiles over each other
 figure(2)
 clf
-for i = 1:length(profile)
-    line(i) = semilogx(profile(i).epsilon(:, 2), profile(i).z);
+colors = [0, 0, 1; 0, .447, .741; .929, .694, .125];
+for i = 2:length(profile)
+    line(i) = semilogx(profile(i).epsilon(:, 2), profile(i).z, 'Color',colors(i, :));
     mask = profile(i).epsilon(:, 2) > 2.42e-11;
     min_eps = profile(i).epsilon(mask, 2);
     [profile(i).min_eps.val, profile(i).min_eps.idx] = min(min_eps);
@@ -45,14 +46,14 @@ for i = 1:length(profile)
 end
 hold off
 set(gca, 'YDir', 'reverse')
-legend(num2str(profile(1).nfft), 'lowest \epsilon measured',...
+legend(...%num2str(profile(1).nfft), 'lowest \epsilon measured',...
     num2str(profile(2).nfft), 'lowest \epsilon measured',...
     num2str(profile(3).nfft),'lowest \epsilon measured',...
-    'Location', 'east')
+    'Location', 'southeast')
 xlabel('epsilon (W/kg)')
 ylabel('depth (m)')
 title({'APEX-epsi standalone deployment', 'epsilons for various nfft'})
-ylim([250 350])
+ylim([208.4 213.5])
 
 %% plot spectra for lowest epsilons
 figure(3)
@@ -102,7 +103,36 @@ for j = 1:length(target_epsilons)
     xlim([5*10^-1, 10^3])
     ylim(y_limits(j, :))
     xlabel('wavenumber (cpm)')
-ylabel('\epsilon (W/kg)')
+    ylabel('\epsilon (W/kg)')
     title({'APEX-epsi standalone deployment', 'close epsilon comparisons for various nfft',...
         sprintf('target epsilon = %.2g', target_epsilons(j))})
+end
+
+%% pick some bins where 4096 gets an epsilon but 2048 rails
+% from examination, bins between 210 and 215 m depth look like a good
+% region
+depth_range = [208.4 213.5];
+[~, first] = min(abs(profile(2).z - depth_range(1)));
+[~, last] = min(abs(profile(2).z - depth_range(end)));
+idx = first:last;
+for j = 1:length(idx)
+    figure(j)
+    clf
+    for i = 2:length(profile)
+        spec(i) = loglog(profile(i).k(idx(j), :), profile(i).Ps_shear_k.s2(idx(j), :));
+        color = get(spec(i), 'Color');
+        [k_panchev, spec_panchev] = panchev(profile(i).epsilon(idx(j), 2), profile(i).kvis(idx(j)));
+        hold on
+        loglog(k_panchev, spec_panchev, 'Color',color, 'LineStyle','--')
+    end
+    legend(num2str(profile(2).nfft), sprintf('\\epsilon = %.3g', profile(2).epsilon(idx(j), 2)),...
+        num2str(profile(3).nfft), sprintf('\\epsilon = %.3g', profile(3).epsilon(idx(j), 2)), ...
+        'Location', 'northwest');
+    hold off
+    xlim([5*10^-1, 5*10^2])
+    ylim([10^-9, 10^-3])
+    xlabel('wavenumber (cpm)')
+    ylabel('\epsilon (W/kg)')
+    title({'APEX-epsi standalone deployment', 'spectra comparisons for low epsilons',...
+        sprintf('%.4g m depth', profile(2).z(idx(j)))})
 end
