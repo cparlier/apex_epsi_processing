@@ -4,7 +4,7 @@
 % standalone deployment
 % March 2022
 
-%% load appropriate data, all profile 007
+%% load appropriate data
 addpath(genpath('C:\Users\cappa\Documents\EPSILOMETER'));
 addpath(genpath('C:\Users\cappa\Documents\local_code\apex_epsi_processing'));
 data = load('processed_data\nfft1024\Profile007.mat');
@@ -58,7 +58,7 @@ title({'APEX-epsi standalone deployment', 'epsilons for various nfft'})
 %% plot spectra for lowest epsilons
 figure(3)
 clf
-for i = 1:length(profile)
+for i = 2:length(profile)
     idx = profile(i).min_eps.idx;
     spec(i) = loglog(profile(i).k(idx, :), profile(i).Ps_shear_k.s2(idx, :));
     color = get(spec(i), 'Color');
@@ -80,33 +80,7 @@ title({'APEX-epsi standalone deployment', 'lowest measured epsilon for various n
 %% pick some epsilons and compare 2048 to 4096 spectra
 % start ignoring nfft = 1024
 target_epsilons = [2e-10, 1e-9, 5e-9, 1e-8, 5e-8, 1e-7, 1e-6, 1e-5];
-idx = NaN(length(target_epsilons), length(profile));
-val = NaN(size(idx));
-y_limits = [10^-8, 10^-1; 10^-8, 10^-1; 10^-8, 10^-1; 10^-8, 10^-1;...
-    10^-7, 10^-0; 10^-7, 10^-0; 10^-6, 10^1; 10^-6, 10^1];
-for j = 1:length(target_epsilons)
-    [val(j, 2), idx(j, 2)] = min(abs(profile(2).epsilon(:, 2) - target_epsilons(j)));
-    [val(j, 3), idx(j, 3)] = min(abs(profile(3).epsilon(:, 2) - target_epsilons(j)));
-    figure(j)
-    clf
-    for i = 2:length(profile)
-        spec(i) = loglog(profile(i).k(idx(j, i), :), profile(i).Ps_shear_k.s2(idx(j, i), :));
-        color = get(spec(i), 'Color');
-        [k_panchev, spec_panchev] = panchev(profile(i).epsilon(idx(j, i), 2), profile(i).kvis(idx(j, i)));
-        hold on
-        loglog(k_panchev, spec_panchev, 'Color',color, 'LineStyle','--')
-    end
-    legend(num2str(profile(2).nfft), sprintf('\\epsilon = %.3g', profile(2).epsilon(idx(j, 2), 2)),...
-    num2str(profile(3).nfft), sprintf('\\epsilon = %.3g', profile(3).epsilon(idx(j, 3), 2)), ...
-    'Location', 'northwest');
-    hold off
-    xlim([5*10^-1, 10^3])
-    ylim(y_limits(j, :))
-    xlabel('wavenumber (cpm)')
-    ylabel('\epsilon (W/kg)')
-    title({'APEX-epsi standalone deployment', 'close epsilon comparisons for various nfft',...
-        sprintf('target epsilon = %.2g', target_epsilons(j))})
-end
+spec = plot_shear_panchev_target_epsilons(target_epsilons, profile);
 
 %% pick some bins where 4096 gets an epsilon but 2048 rails
 % from examination, bins between 210 and 215 m depth look like a good
@@ -137,55 +111,59 @@ for j = 1:length(idx)
         sprintf('%.4g m depth', profile(2).z(idx(j)))})
 end
 
-%% find minimum epsilon for a given fall rate and nfft combination
-% initial integration happens between 2 and 10cpm, need a critical number
-% of point lower than 10cpm in order to get an epsilon
-% let's empirically determine that
-avg_pts_bad = size(1, length(profile));
-avg_pts_good = size(avg_pts_bad);
-ratio_bad = size(1, length(profile));
-ratio_good = size(ratio_bad);
-k_fundamental_good = size(ratio_bad);
-k_fundamental_bad = size(ratio_bad);
-product_good = size(ratio_good);
-product_bad = size(product_good);
-w_good = size(product_bad);
-w_bad = size(w_good);
-k_ratio_bad = size(w_bad);
-k_ratio_good = size(k_ratio_bad);
-integral_mean_good = size(k_ratio_good);
-integral_mean_bad = size(integral_mean_good);
-for i = 1:length(profile)
-    profile(i).eps_mask = profile(i).epsilon(:, 2) > 1e-11; 
-    profile(i).num_good_epsilon = sum(profile(i).eps_mask);
-    profile(i).num_bad_epsilon = sum(~profile(i).eps_mask);
-    profile(i).num_under10 = zeros(1, profile(i).nbscan);
-    for j = 1:profile(i).nbscan
-        profile(i).num_under10(j) = sum(profile(i).k(j, 2:end) < 10);
-        profile(i).integral(j) = sum(profile(i).k(j, 2)*profile(i).Ps_shear_k.s2(j, 2:(profile(i).num_under10(j) + 1)));
-    end
-    % looking for different metrcis to quantify what makes a good vs. bad
-    % epsilon
-    % try avg number of samples below 10cpm
-    avg_pts_bad(i) = mean(profile(i).num_under10(~profile(i).eps_mask));
-    avg_pts_good(i) = mean(profile(i).num_under10(profile(i).eps_mask));
-    % try ratio of nfft to avg num of samples below 10cpm for bad
-    ratio_bad(i) = profile(i).nfft/avg_pts_bad(i);
-    ratio_good(i) = profile(i).nfft/avg_pts_good(i);
-    % try average fundamental wavenumber?
-    k_fundamental_good(i) = mean(profile(i).k(profile(i).eps_mask, 2));
-    k_fundamental_bad(i) = mean(profile(i).k(~profile(i).eps_mask & ~isnan(profile(i).k(:, 1)), 2));
-    % multiply average fundamental wavenumber by Nfft seems good?
-    product_good(i) = profile(i).nfft*k_fundamental_good(i);
-    product_bad(i) = profile(i).nfft*k_fundamental_bad(i);
-    % let's just test rise rate itself
-    w_good(i) = profile(i).nfft/mean(abs(profile(i).w(profile(i).eps_mask)));
-    w_bad(i) = profile(i).nfft/mean(abs(profile(i).w(~profile(i).eps_mask & ~isnan(profile(i).w))));
-    % maybe ratio of avg_pts to fundamental wavenumber?
-    k_ratio_bad(i) = avg_pts_bad(i)/k_fundamental_bad(i);
-    k_ratio_good(i) = avg_pts_good(i)/k_fundamental_good(i);
-    % perhaps actually do the integral as the check?
-    integral_mean_good(i) = profile(i).nfft/mean(profile(i).integral(profile(i).eps_mask));
-    integral_mean_bad(i) = profile(i).nfft/mean(profile(i).integral(~profile(i).eps_mask));
-end
-% plot(profile(2).epsilon(:, 2), profile(2).)
+%%
+
+
+% %% nix this section
+% % find minimum epsilon for a given fall rate and nfft combination
+% % initial integration happens between 2 and 10cpm, need a critical number
+% % of point lower than 10cpm in order to get an epsilon
+% % let's empirically determine that
+% avg_pts_bad = size(1, length(profile));
+% avg_pts_good = size(avg_pts_bad);
+% ratio_bad = size(1, length(profile));
+% ratio_good = size(ratio_bad);
+% k_fundamental_good = size(ratio_bad);
+% k_fundamental_bad = size(ratio_bad);
+% product_good = size(ratio_good);
+% product_bad = size(product_good);
+% w_good = size(product_bad);
+% w_bad = size(w_good);
+% k_ratio_bad = size(w_bad);
+% k_ratio_good = size(k_ratio_bad);
+% integral_mean_good = size(k_ratio_good);
+% integral_mean_bad = size(integral_mean_good);
+% for i = 1:length(profile)
+%     profile(i).eps_mask = profile(i).epsilon(:, 2) > 1e-11; 
+%     profile(i).num_good_epsilon = sum(profile(i).eps_mask);
+%     profile(i).num_bad_epsilon = sum(~profile(i).eps_mask);
+%     profile(i).num_under10 = zeros(1, profile(i).nbscan);
+%     for j = 1:profile(i).nbscan
+%         profile(i).num_under10(j) = sum(profile(i).k(j, 2:end) < 10);
+%         profile(i).integral(j) = sum(profile(i).k(j, 2)*profile(i).Ps_shear_k.s2(j, 2:(profile(i).num_under10(j) + 1)));
+%     end
+%     % looking for different metrcis to quantify what makes a good vs. bad
+%     % epsilon
+%     % try avg number of samples below 10cpm
+%     avg_pts_bad(i) = mean(profile(i).num_under10(~profile(i).eps_mask));
+%     avg_pts_good(i) = mean(profile(i).num_under10(profile(i).eps_mask));
+%     % try ratio of nfft to avg num of samples below 10cpm for bad
+%     ratio_bad(i) = profile(i).nfft/avg_pts_bad(i);
+%     ratio_good(i) = profile(i).nfft/avg_pts_good(i);
+%     % try average fundamental wavenumber?
+%     k_fundamental_good(i) = mean(profile(i).k(profile(i).eps_mask, 2));
+%     k_fundamental_bad(i) = mean(profile(i).k(~profile(i).eps_mask & ~isnan(profile(i).k(:, 1)), 2));
+%     % multiply average fundamental wavenumber by Nfft seems good?
+%     product_good(i) = profile(i).nfft*k_fundamental_good(i);
+%     product_bad(i) = profile(i).nfft*k_fundamental_bad(i);
+%     % let's just test rise rate itself
+%     w_good(i) = profile(i).nfft/mean(abs(profile(i).w(profile(i).eps_mask)));
+%     w_bad(i) = profile(i).nfft/mean(abs(profile(i).w(~profile(i).eps_mask & ~isnan(profile(i).w))));
+%     % maybe ratio of avg_pts to fundamental wavenumber?
+%     k_ratio_bad(i) = avg_pts_bad(i)/k_fundamental_bad(i);
+%     k_ratio_good(i) = avg_pts_good(i)/k_fundamental_good(i);
+%     % perhaps actually do the integral as the check?
+%     integral_mean_good(i) = profile(i).nfft/mean(profile(i).integral(profile(i).eps_mask));
+%     integral_mean_bad(i) = profile(i).nfft/mean(profile(i).integral(~profile(i).eps_mask));
+% end
+% % plot(profile(2).epsilon(:, 2), profile(2).)
