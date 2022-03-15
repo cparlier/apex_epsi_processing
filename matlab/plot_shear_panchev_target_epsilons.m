@@ -27,7 +27,7 @@ function [figs, spec, idx] = plot_shear_panchev_target_epsilons(targets, profile
         ylim([10^-8 1])
         xlim([1 10^3])
         xlabel('wavenumber (cpm)')
-        ylabel('\epsilon (W/kg)')
+        ylabel('\Phi_{shear} (s^{-2}/cpm)')
         title({'APEX-epsi standalone deployment', 'close epsilon comparisons across profiles',...
             sprintf('target epsilon = %.2g', targets(j))})
     end

@@ -74,7 +74,7 @@ hold off
 xlim([2*10^-1, 10^3])
 ylim([10^-8, 10^-1])
 xlabel('wavenumber (cpm)')
-ylabel('\epsilon (W/kg)')
+ylabel('\Phi_{shear} (s^{-2}/cpm)')
 title({'APEX-epsi standalone deployment', 'lowest measured epsilon for various nfft'})
 
 %% pick some epsilons and compare 2048 to 4096 spectra
@@ -106,7 +106,7 @@ for j = 1:length(idx)
     xlim([5*10^-1, 5*10^2])
     ylim([10^-9, 10^-3])
     xlabel('wavenumber (cpm)')
-    ylabel('\epsilon (W/kg)')
+    ylabel('\Phi_{shear} (s^{-2}/cpm)')
     title({'APEX-epsi standalone deployment', 'spectra comparisons for low epsilons',...
         sprintf('%.4g m depth', profile(2).z(idx(j)))})
 end

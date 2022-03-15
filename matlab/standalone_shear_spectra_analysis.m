@@ -18,6 +18,51 @@ data = load('processed_data\nfft4096\Profile010.mat');
 profile(4) = data.Profile;
 clear data
 
+%% subplot with all chi profiles MUST USE 4096 FOR THESE
+figure(3)
+clf
+width = 1/length(profile) - 0.025;
+height = 0.725;
+for i = 1:length(profile)
+%     mask = profile(i).epsilon(:, 2) > 1e-11;
+    ax(i) = subplot('Position', [(i - 1)*width + 0.065, .1, width, height]);
+    semilogx(profile(i).chi(:, 2), profile(i).z(:));
+    if i ~= 1
+        set(gca, 'YTick', [])
+    end
+    set(gca, 'YDir', 'reverse')
+    ax(i).XTick = [10^-10 10^-6];
+    xlabel('\chi (K^2/s)')
+    title(sprintf('Profile %d', 6 + i))
+end
+linkaxes(ax(1:end), 'xy');
+ylabel(ax(1), 'Depth(m)')
+ax(1).YLim = [0 730];
+% ax(1).XLim = [10^-10 10^-5];
+sgtitle({'Standalone APEX-epsi', '\chi across all standard ascent profiles'})
+
+figure(4)
+clf
+for i = 1:length(profile)
+    mask = profile(i).chi(:, 2) > 0;
+    line(i) = semilogx(profile(i).chi(:, 2), profile(i).z(:));
+    hold on
+    min_chi = profile(i).chi(mask, 2);
+    [profile(i).min_chi.val, profile(i).min_chi.idx] = min(min_chi);
+    color = get(line(i), 'Color');
+    xline(profile(i).min_chi.val, 'Color',color, 'LineStyle','--')
+end
+hold off
+set(gca, 'YDir', 'reverse')
+% xlim([10^-10 10^-5])
+% ylim([100 150])
+xlabel('\chi (K^2/s)')
+ylabel('Depth (m)')
+title({'Standalone APEX-epsi', '\chi across all standard ascent profiles'})
+legend('Profile 7', 'lowest \chi measured', 'Profile 8', 'lowest \chi measured',...
+    'Profile 9', 'lowest \chi measured', 'Profile 10',...
+    'lowest \chi measured', 'Location', 'east')
+
 %%
 for i = 1:length(profile)
     profile(i).Meta_Data.paths.process_library = 'C:\Users\cappa\Documents\EPSILOMETER';

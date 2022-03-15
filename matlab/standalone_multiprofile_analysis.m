@@ -8,13 +8,13 @@
 clear all
 addpath(genpath('C:\Users\cappa\Documents\EPSILOMETER'));
 addpath(genpath('C:\Users\cappa\Documents\local_code\apex_epsi_processing'));
-data = load('processed_data\nfft4096\Profile007.mat');
+data = load('processed_data\nfft2048\Profile007.mat');
 profile(1) = data.Profile;
-data = load('processed_data\nfft4096\Profile008.mat');
+data = load('processed_data\nfft2048\Profile008.mat');
 profile(2) = data.Profile;
-data = load('processed_data\nfft4096\Profile009.mat');
+data = load('processed_data\nfft2048\Profile009.mat');
 profile(3) = data.Profile;
-data = load('processed_data\nfft4096\Profile010.mat');
+data = load('processed_data\nfft2048\Profile010.mat');
 profile(4) = data.Profile;
 clear data
 %% plot all 4 profiles
@@ -37,9 +37,11 @@ clf
 width = 1/length(profile) - 0.025;
 height = 0.725;
 for i = 1:length(profile)
-%     mask = profile(i).epsilon(:, 2) > 1e-11;
+    mask = profile(i).epsilon(:, 2) > 1e-11;
     ax(i) = subplot('Position', [(i - 1)*width + 0.065, .1, width, height]);
-    semilogx(profile(i).epsilon(:, 2), profile(i).z(:));
+    eps_plot = profile(i).epsilon(:, 2);
+    eps_plot(~mask) = NaN;
+    semilogx(eps_plot, profile(i).z(:));
     if i ~= 1
         set(gca, 'YTick', [])
     end
@@ -76,50 +78,6 @@ legend('Profile 7', 'lowest \epsilon measured', 'Profile 8', 'lowest \epsilon me
     'Profile 9', 'lowest \epsilon measured', 'Profile 10',...
     'lowest \epsilon measured', 'Location', 'east')
 
-%% subplot with all chi profiles
-figure(3)
-clf
-width = 1/length(profile) - 0.025;
-height = 0.725;
-for i = 1:length(profile)
-%     mask = profile(i).epsilon(:, 2) > 1e-11;
-    ax(i) = subplot('Position', [(i - 1)*width + 0.065, .1, width, height]);
-    semilogx(profile(i).chi(:, 2), profile(i).z(:));
-    if i ~= 1
-        set(gca, 'YTick', [])
-    end
-    set(gca, 'YDir', 'reverse')
-    ax(i).XTick = [10^-10 10^-6];
-    xlabel('\chi (K/m^2)')
-    title(sprintf('Profile %d', 6 + i))
-end
-linkaxes(ax(1:end), 'xy');
-ylabel(ax(1), 'Depth(m)')
-ax(1).YLim = [0 730];
-% ax(1).XLim = [10^-10 10^-5];
-sgtitle({'Standalone APEX-epsi', '\chi across all standard ascent profiles'})
-
-figure(4)
-clf
-for i = 2:length(profile)
-    mask = profile(i).chi(:, 2) > 0;
-    line(i) = semilogx(profile(i).chi(:, 2), profile(i).z(:));
-    hold on
-    min_chi = profile(i).chi(mask, 2);
-    [profile(i).min_chi.val, profile(i).min_chi.idx] = min(min_chi);
-    color = get(line(i), 'Color');
-    xline(profile(i).min_chi.val, 'Color',color, 'LineStyle','--')
-end
-hold off
-set(gca, 'YDir', 'reverse')
-% xlim([10^-10 10^-5])
-% ylim([100 150])
-xlabel('\chi (K/m^2)')
-ylabel('Depth (m)')
-title({'Standalone APEX-epsi', '\chi across all standard ascent profiles'})
-legend('Profile 7', 'lowest \chi measured', 'Profile 8', 'lowest \chi measured',...
-    'Profile 9', 'lowest \chi measured', 'Profile 10',...
-    'lowest \chi measured', 'Location', 'east')
 %% pick some epsilons and compare for different profiles
 close all
 target_epsilons = [1e-10, 1e-9, 5e-9, 1e-8, 5e-8, 1e-7, 1e-6, 1e-5];
