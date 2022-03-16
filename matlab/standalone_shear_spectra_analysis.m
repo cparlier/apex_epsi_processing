@@ -70,3 +70,22 @@ for i = 1:length(profile)
     profile(i).Meta_Data.paths.profiles = 'C:\Users\cappa\Documents\local_code\apex_epsi_processing\processed_data\nfft4096';
 end
 %% calculate turbulence
+
+
+%% calculate and plot a number of noise floors for different rise rates
+w = [0.05, 0.075, 0.1, 0.15, 0.2, 0.5, 1];
+phi_v_f = 10^-10*ones(1, length(profile(1).f));
+k = linspace(1, 10^3, length(phi_v_f));
+phi_shear_k = nan(length(w), length(k));
+for i = 1:length(w)
+    phi_shear_k(i, :) = phi_v_f.*w(i).*k.^2;
+end
+loglog(k, phi_shear_k)
+legend('5', '7,5', '10', '15', '20', '50', '100')
+epsilon = [1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5];
+for i = 1:length(epsilon)
+    [k, Pxx] = panchev(epsilon(i), 1.5e-6);
+    hold on
+    loglog(k, Pxx)
+end
+hold off
