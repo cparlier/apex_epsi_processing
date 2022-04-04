@@ -81,7 +81,7 @@ for i = 1:length(w)
     phi_shear_k(i, :) = phi_v_f.*w(i).*k.^2;
 end
 loglog(k, phi_shear_k)
-legend('5', '7,5', '10', '15', '20', '50', '100')
+legend('5', '7.5', '10', '15', '20', '50', '100')
 epsilon = [1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5];
 for i = 1:length(epsilon)
     [k, Pxx] = panchev(epsilon(i), 1.5e-6);
