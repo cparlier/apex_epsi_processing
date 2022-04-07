@@ -8,20 +8,7 @@
 clear all
 addpath(genpath('C:\Users\cappa\Documents\EPSILOMETER'));
 addpath(genpath('C:\Users\cappa\Documents\local_code\apex_epsi_processing'));
-data = load('processed_data\nfft4096\Profile007.mat');
-profile(1) = data.Profile;
-data = load('processed_data\nfft4096\Profile008.mat');
-profile(2) = data.Profile;
-data = load('processed_data\nfft4096\Profile009.mat');
-profile(3) = data.Profile;
-data = load('processed_data\nfft4096\Profile010.mat');
-profile(4) = data.Profile;
-clear data
-for i = 1:length(profile)
-    profile(i).Meta_Data.paths.process_library = 'C:\Users\cappa\Documents\EPSILOMETER';
-    profile(i).Meta_Data.paths.calibration = 'C:\Users\cappa\Documents\EPSILOMETER\CALIBRATION\ELECTRONICS';
-    profile(i).Meta_Data.paths.profiles = 'C:\Users\cappa\Documents\local_code\apex_epsi_processing\processed_data\nfft4096';
-end
+load('processed_data\downsampled\profiles_nfft2048.mat');
 
 %% plot all epsilon profiles
 [fig, ax] = plot_epsilon_profiles(profile);
@@ -29,13 +16,13 @@ sgtitle({'Standalone APEX-epsi', '\epsilon across all standard ascent profiles'}
 
 %% pick a single vertical bin from a single profile
 close all
-targets = 500:25:700;
-[fig, ax] = plot_allshear_target_depths(profile(3), targets);
+targets = 650;
+[fig, ax] = plot_allshear_target_depths(profile(1), targets);
 
 % title({'APEX-epsi standalone deployment', 'close epsilon comparisons across profiles',...
 %     sprintf('target epsilon = %.2g', targets(j))})
 
-%% add wavenumber cutoffs to profile structs
+%% add wavenumber cutoffs to profile structs and plot wavenumber cutoffs
 profile = add_wavenumber_cutoffs(profile);
 
 for i = 1:length(profile)
