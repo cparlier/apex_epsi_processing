@@ -13,14 +13,21 @@ load('processed_data\downsampled\profiles_nfft2048.mat');
 %% plot all epsilon profiles
 [fig, ax] = plot_epsilon_profiles(profile);
 sgtitle({'Standalone APEX-epsi', '\epsilon across all standard ascent profiles'})
+[fig, ax] = plot_fom_profiles(profile);
+sgtitle({'Standalone APEX-epsi', 'FOM across all standard ascent profiles'})
 
 %% pick a single vertical bin from a single profile
-close all
-targets = 650;
-[fig, ax] = plot_allshear_target_depths(profile(1), targets);
+% close all
+targets = 555; %[95, 650, 660, 670];
+[fig, ax] = plot_allshear_target_depths(profile(3), targets);
 
-% title({'APEX-epsi standalone deployment', 'close epsilon comparisons across profiles',...
-%     sprintf('target epsilon = %.2g', targets(j))})
+
+
+% load('processed_data\nfft4096\Profile009.mat')
+% hold on
+% [fig, ax] = plot_allshear_target_depths(Profile, targets);
+
+
 
 %% add wavenumber cutoffs to profile structs and plot wavenumber cutoffs
 profile = add_wavenumber_cutoffs(profile);
