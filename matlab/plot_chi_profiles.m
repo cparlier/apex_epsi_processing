@@ -1,4 +1,4 @@
-function [fig, ax] = plot_epsilon_profiles(profile)
+function [fig, ax] = plot_chi_profiles(profile)
 
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
@@ -7,17 +7,17 @@ function [fig, ax] = plot_epsilon_profiles(profile)
     height = 0.725;
     fs = 14;
     for i = 1:length(profile)
-        mask = profile(i).epsilon(:, 2) > 1e-11;
+        mask = profile(i).chi(:, 2) > 1e-11;
         ax(i) = subplot('Position', [(i - 1)*width + 0.065, .1, width, height]);
-        eps_plot = profile(i).epsilon(:, 2);
-        eps_plot(~mask) = NaN;
-        semilogx(eps_plot, profile(i).z(:));
+        chi_plot = profile(i).chi(:, 2);
+        chi_plot(~mask) = NaN;
+        semilogx(chi_plot, profile(i).z(:));
         if i ~= 1
             set(gca, 'YTick', [])
         end
         set(gca, 'YDir', 'reverse')
-        ax(i).XTick = [10^-10 10^-6];
-        xlabel('\epsilon (W/kg)')
+%         ax(i).XTick = [10^-10 10^-6];
+        xlabel('\chi (K^2/s)')
         title(sprintf('Profile %d', 6 + i))
         ax(i).FontSize = fs;
     end

@@ -12,13 +12,14 @@ load('processed_data\downsampled\profiles_nfft2048.mat');
 
 %% plot all epsilon profiles
 [fig, ax] = plot_epsilon_profiles(profile);
-sgtitle({'Standalone APEX-epsi', '\epsilon across all standard ascent profiles'})
-[fig, ax] = plot_fom_profiles(profile);
-sgtitle({'Standalone APEX-epsi', 'FOM across all standard ascent profiles'})
+sgtitle({'Standalone APEX-epsi', '\epsilon across all standard ascent profiles'}, 'FontSize',16)
+[fig, ax] = plot_chi_profiles(profile);
+% [fig, ax] = plot_fom_profiles(profile);
+% sgtitle({'Standalone APEX-epsi', 'FOM across all standard ascent profiles'}, 'FontSize',16)
 
 %% pick a single vertical bin from a single profile
-% close all
-targets = 555; %[95, 650, 660, 670];
+close all
+targets = [600:10:700]; %[95, 650, 660, 670];
 [fig, ax] = plot_allshear_target_depths(profile(3), targets);
 
 
