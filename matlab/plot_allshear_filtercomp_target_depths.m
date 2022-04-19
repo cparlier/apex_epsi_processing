@@ -1,4 +1,4 @@
-function [fig, ax] = plot_allshear_target_depths(profile, targets)
+function [fig, ax] = plot_allshear_filtercomp_target_depths(profile, bad_filter, targets)
     
     %UNTITLED3 Summary of this function goes here
     %   Detailed explanation goes here
@@ -18,13 +18,18 @@ function [fig, ax] = plot_allshear_target_depths(profile, targets)
         ax(i, 1) = loglog(profile.k(idx(i), :), profile.Ps_shear_k.s2(idx(i), :));
         hold on
 %         loglog(profile.k(idx(i), :), profile.Ps_shear_co_k.s2(idx(i), :));
-        color = get(ax(i), 'Color');
+        color = get(ax(i, 1), 'Color');
         hold on
         loglog(k_panchev, spec_panchev, 'Color',color, 'LineStyle','--')
         kc_emp = profile.sh_fc(idx(i), 2)/abs(profile.w(idx(i)));
         [kc, kc_idx] = max(profile.k(idx(i), profile.k(idx(i), :) < kc_emp));
-        plot(kc, profile.Ps_shear_k.s2(idx(i), kc_idx), 'r*');
-        legend('shear spectrum', sprintf('\\epsilon = %.3g', profile.epsilon(idx(i), 2)), '\epsilon wavenumber cutoff');
+        plot(kc, profile.Ps_shear_k.s2(idx(i), kc_idx), 'g*');
+        loglog(bad_filter.k(idx(i), :), bad_filter.Ps_shear_k.s2(idx(i), :), 'r');
+        [k_panchev_bad, spec_panchev_bad] = panchev(bad_filter.epsilon(idx(i), 2), bad_filter.kvis(idx(i)));
+        loglog(k_panchev_bad, spec_panchev_bad, 'r--')
+        legend('shear spectrum', sprintf('\\epsilon = %.3g', profile.epsilon(idx(i), 2)),...
+            '\epsilon wavenumber cutoff', 'bad filter',...
+            sprintf('\\epsilon = %.3g', bad_filter.epsilon(idx(i), 2)));
         xlabel('wavenumber (cpm)')
         ylabel('\Phi_{shear} (s^{-2}/cpm)')
         title('spectra')
@@ -36,6 +41,7 @@ function [fig, ax] = plot_allshear_target_depths(profile, targets)
         plot(profile.epsi.dnum(idx_raw), profile.epsi.s2_volt(idx_raw))
         datetick
         ylim([-.005 .005])
+        xlim([min(profile.epsi.dnum(idx_raw)), max(profile.epsi.dnum(idx_raw))])
         xlabel('time')
         ylabel('shear (V)')
         title('raw shear data')

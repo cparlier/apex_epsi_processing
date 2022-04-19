@@ -15,6 +15,14 @@ for i = 1:length(profile)
     profile(i).Meta_Data.AFE.t2.cal = 34.1;
     profile(i) = mod_epsilometer_calc_turbulence_v2(profile(i).Meta_Data, profile(i));
 end
+save('processed_data\downsampled\profiles_nfft2048.mat', 'profile');
+%% comparison plots- before and after filter fix
+bad_filter = load('processed_data\bad_filter\profiles_nfft2048.mat');
+bad_filter = bad_filter.profile;
+%% plots
+close all
+targets = [30, 130, 190, 300, 580];
+[fig, ax] = plot_allshear_filtercomp_target_depths(profile(1), bad_filter(1), targets);
 
 %% plots of raw acceleration
 for i = 1:length(profile)
@@ -91,7 +99,6 @@ sgtitle({'Standalone APEX-epsi', '\chi across all standard ascent profiles'}, 'F
 % sgtitle({'Standalone APEX-epsi', 'FOM across all standard ascent profiles'}, 'FontSize',16)
 
 
-
 %% plot stddev and shear
 close all
 targets = 665;
@@ -141,7 +148,7 @@ end
 
 %% show some plots
 close all
-targets = 370;
+targets = 300;
 [fig, ax] = plot_allshear_target_depths(profile(1), targets);
 [fig, ax] = plot_accelcohere_target_depths(profile(1), targets);
 text(2, 0.9, sprintf('%d scan average', num_scans))
