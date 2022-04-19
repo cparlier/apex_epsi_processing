@@ -19,7 +19,7 @@ sgtitle({'Standalone APEX-epsi', '\epsilon across all standard ascent profiles'}
 
 %% pick a single vertical bin from a single profile
 close all
-targets = [600:10:700]; %[95, 650, 660, 670];
+targets = 600:10:700; %[95, 650, 660, 670];
 [fig, ax] = plot_allshear_target_depths(profile(3), targets);
 
 

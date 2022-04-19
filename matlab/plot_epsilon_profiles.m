@@ -7,7 +7,10 @@ function [fig, ax] = plot_epsilon_profiles(profile)
     height = 0.725;
     fs = 14;
     for i = 1:length(profile)
-        mask = profile(i).epsilon(:, 2) > 1e-11;
+        mask = profile(i).epsilon(:, 2) > 1e-10;
+        if isfield(profile(i), 'pump')
+            mask = (profile(i).epsilon(:, 2) > 1e-10) & ~(profile(i).pump.flag);
+        end
         ax(i) = subplot('Position', [(i - 1)*width + 0.065, .1, width, height]);
         eps_plot = profile(i).epsilon(:, 2);
         eps_plot(~mask) = NaN;

@@ -17,7 +17,7 @@ function [fig, ax] = plot_allshear_target_depths(profile, targets)
         subplot(1, 2, 1)
         ax(i, 1) = loglog(profile.k(idx(i), :), profile.Ps_shear_k.s2(idx(i), :));
         hold on
-        loglog(profile.k(idx(i), :), profile.Ps_shear_co_k.s2(idx(i), :));
+%         loglog(profile.k(idx(i), :), profile.Ps_shear_co_k.s2(idx(i), :));
         color = get(ax(i), 'Color');
         hold on
         loglog(k_panchev, spec_panchev, 'Color',color, 'LineStyle','--')
