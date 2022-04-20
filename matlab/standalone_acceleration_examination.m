@@ -90,36 +90,6 @@ end
 threshold = 2e-6;
 profile = remove_bouyancy_pump(profile, threshold);
 
-%% plot all epsilon and chi profiles
-[fig, ax] = plot_epsilon_profiles(profile);
-sgtitle({'Standalone APEX-epsi', '\epsilon across all standard ascent profiles'}, 'FontSize',20)
-[fig, ax] = plot_chi_profiles(profile);
-sgtitle({'Standalone APEX-epsi', '\chi across all standard ascent profiles'}, 'FontSize',20)
-% [fig, ax] = plot_fom_profiles(profile);
-% sgtitle({'Standalone APEX-epsi', 'FOM across all standard ascent profiles'}, 'FontSize',16)
-
-
-%% plot stddev and shear
-close all
-targets = 665;
-i = 1;
-% for i = 1:length(profile)
-    [~, idx(i)] = min(abs(profile(i).z - targets(i)));
-    depths(i) = profile(i).z(idx(i));
-    figure
-    ax(1) = subplot(1, 3, 1);
-    plot(profile(i).epsi.s2_volt, profile(i).epsi.dnum)
-    ylabel('shear (V)')
-    ax(2) = subplot(1, 3, 2);
-    plot(profile(i).s2_stddev, profile(i).z)
-    set(gca, 'YDir', 'reverse')
-    ylim([650 665])
-    ax(3) = subplot(1, 3, 3);
-    semilogx(profile(i).epsilon(:, 2), profile(i).z);
-    set(gca, 'YDir', 'reverse')
-    ylim([650 665])
-% end
-
 %% compute acceleration coherence with raw shear for all scans
 num_scans = 10;
 for i = 1:length(profile)
@@ -152,6 +122,61 @@ targets = 300;
 [fig, ax] = plot_allshear_target_depths(profile(1), targets);
 [fig, ax] = plot_accelcohere_target_depths(profile(1), targets);
 text(2, 0.9, sprintf('%d scan average', num_scans))
+
+%% identify if shear data has a spike in it
+% targets = [690, 700];
+% [fig, ax] = plot_allshear_target_depths(profile(3), targets);
+
+for i = 1:length(profile)
+    % create a detrended shear field for each scan
+    profile(i).spike.detrended_shear = nan(profile(i).nbscan, profile(i).nfft*2);
+    profile(i).spike.flag = zeros(profile(i).nbscan, 1);
+    for j = 1:profile(i).nbscan
+        idx = profile(i).ind_range_epsi(j, 1):profile(i).ind_range_epsi(j, end);
+        if ~isnan(idx)
+            profile(i).spike.detrended_shear(j, :) = detrend(profile(i).epsi.s2_volt(idx));
+            stddev = std(profile(i).spike.detrended_shear(j, :));
+            comp = (profile(i).spike.detrended_shear(j, :) > 6*stddev);
+            if sum(comp) > 0
+                profile(i).spike.flag(j) = 1;
+            end
+        end
+    end
+end
+
+%% plot all epsilon and chi profiles
+[fig, ax] = plot_epsilon_profiles(profile);
+sgtitle({'Standalone APEX-epsi', '\epsilon across all standard ascent profiles'}, 'FontSize',20)
+[fig, ax] = plot_chi_profiles(profile);
+sgtitle({'Standalone APEX-epsi', '\chi across all standard ascent profiles'}, 'FontSize',20)
+% [fig, ax] = plot_fom_profiles(profile);
+% sgtitle({'Standalone APEX-epsi', 'FOM across all standard ascent profiles'}, 'FontSize',16)
+
+
+
+
+% %% plot stddev and shear
+% close all
+% targets = 665;
+% i = 1;
+% % for i = 1:length(profile)
+%     [~, idx(i)] = min(abs(profile(i).z - targets(i)));
+%     depths(i) = profile(i).z(idx(i));
+%     figure
+%     ax(1) = subplot(1, 3, 1);
+%     plot(profile(i).epsi.s2_volt, profile(i).epsi.dnum)
+%     ylabel('shear (V)')
+%     ax(2) = subplot(1, 3, 2);
+%     plot(profile(i).s2_stddev, profile(i).z)
+%     set(gca, 'YDir', 'reverse')
+%     ylim([650 665])
+%     ax(3) = subplot(1, 3, 3);
+%     semilogx(profile(i).epsilon(:, 2), profile(i).z);
+%     set(gca, 'YDir', 'reverse')
+%     ylim([650 665])
+% % end
+
+
 
 % %% add standard deviation of shear to profiles
 % for i = 1:length(profile)

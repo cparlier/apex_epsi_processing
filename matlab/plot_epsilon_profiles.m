@@ -9,7 +9,10 @@ function [fig, ax] = plot_epsilon_profiles(profile)
     for i = 1:length(profile)
         mask = profile(i).epsilon(:, 2) > 1e-10;
         if isfield(profile(i), 'pump')
-            mask = (profile(i).epsilon(:, 2) > 1e-10) & ~(profile(i).pump.flag);
+            mask = mask & ~(profile(i).pump.flag);
+        end
+        if isfield(profile(i), 'spike')
+            mask = mask & ~(profile(i).spike.flag);
         end
         ax(i) = subplot('Position', [(i - 1)*width + 0.065, .1, width, height]);
         eps_plot = profile(i).epsilon(:, 2);
