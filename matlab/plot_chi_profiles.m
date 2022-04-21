@@ -3,22 +3,21 @@ function [fig, ax] = plot_chi_profiles(profile)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
     fig = figure;
-    width = 1/length(profile) - 0.025;
-    height = 0.725;
     fs = 14;
+    tiledlayout(1, 4, 'TileSpacing','compact')
     for i = 1:length(profile)
         mask = profile(i).chi(:, 2) > 1e-12;
-        ax(i) = subplot('Position', [(i - 1)*width + 0.065, .1, width, height]);
         chi_plot = profile(i).chi(:, 2);
         chi_plot(~mask) = NaN;
+        nexttile
+        ax(i) = gca;
         semilogx(chi_plot, profile(i).z(:));
         if i ~= 1
             set(gca, 'YTick', [])
         end
         set(gca, 'YDir', 'reverse')
-%         ax(i).XTick = [10^-10 10^-6];
         xlabel('\chi (K^2/s)')
-        title(sprintf('Profile %d', 6 + i))
+        title({sprintf('Profile %d', 6 + i), datestr(mean(profile(i).dnum, 'omitnan'), 'mm/dd-HHAM')})
         ax(i).FontSize = fs;
     end
     linkaxes(ax(1:end), 'xy');
@@ -30,5 +29,5 @@ function [fig, ax] = plot_chi_profiles(profile)
         end
     end
     ax(1).YLim = [0 max_depth];
-%     ax(1).XLim = [10^-10 10^-5];
+
 end

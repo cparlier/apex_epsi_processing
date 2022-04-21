@@ -16,6 +16,8 @@ for i = 1:length(profile)
     profile(i) = mod_epsilometer_calc_turbulence_v2(profile(i).Meta_Data, profile(i));
 end
 save('processed_data\downsampled\profiles_nfft2048.mat', 'profile');
+
+
 %% comparison plots- before and after filter fix
 bad_filter = load('processed_data\bad_filter\profiles_nfft2048.mat');
 bad_filter = bad_filter.profile;
