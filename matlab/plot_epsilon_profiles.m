@@ -4,7 +4,7 @@ function [fig, ax] = plot_epsilon_profiles(profile)
 %   Detailed explanation goes here
     fig = figure;
     fs = 14;
-    tiledlayout(1, 4, 'TileSpacing','compact')
+    tiledlayout(1, 4, 'TileSpacing','none')
     for i = 1:length(profile)
         mask = profile(i).epsilon(:, 2) > 1e-10;
         if isfield(profile(i), 'pump')

@@ -16,7 +16,7 @@ function [fig, ax] = plot_standalone_deployment(standard_ascent, yoyo)
     t_min = min(profile(1).dnum);
     t_max = max(profile(1).dnum);
     for i = 1:length(profile)
-        ax(i) = plot(profile(i).dnum, profile(i).z, 'Color','black', 'LineWidth',2);
+        plot(profile(i).dnum, profile(i).z, 'Color','black', 'LineWidth',2);
         if max(profile(i).z > z_max)
             z_max = max(profile(i).z);
         end
@@ -27,6 +27,8 @@ function [fig, ax] = plot_standalone_deployment(standard_ascent, yoyo)
             t_max = max(profile(i).dnum);
         end
     end
+    ax = gca;
+    ax.FontSize = fs;
     x_buffer = .1;
     y_buffer = 50;
     ylim([0 z_max + y_buffer])

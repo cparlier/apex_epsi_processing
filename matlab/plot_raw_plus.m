@@ -5,10 +5,10 @@ function [fig, ax] = plot_raw_plus(profile)
     % chi, rise rate
     
     for i = 1:length(profile)
-        fig = figure;
+        fig(i) = figure;
         z_max = max(profile(i).z);
         z_epsi = interp1(1:length(profile(i).ctd.z), profile(i).ctd.z, linspace(1, length(profile(i).ctd.z), length(profile(i).epsi.s2_volt)));
-        tiledlayout(1, 6, 'TileSpacing','compact')
+        tiledlayout(1, 6, 'TileSpacing','tight')
         % shear
         nexttile
         ax(i, 1) = plot(profile(i).epsi.s2_volt, z_epsi);
@@ -55,12 +55,12 @@ function [fig, ax] = plot_raw_plus(profile)
         yticks([]);
         % rise rate
         nexttile
-        ax(i, 6) = plot(profile(i).w, profile(i).z);
+        ax(i, 6) = plot(abs(profile(i).w), profile(i).z);
         xlabel('m/s')
         set(gca, 'YDir', 'reverse')
         title('Rise Rate')
         yticks([]);
-        sgtitle({'Standalone APEX-epsi Deployment', sprintf('Profile %d %s', profile(i).profNum, datestr(mean(profile(i).dnum, 'omitnan'), 'mm/dd-HHAM'))})
+        sgtitle({'Standalone APEX-epsi Deployment', sprintf('Profile %d - %s', profile(i).profNum, datestr(mean(profile(i).dnum, 'omitnan'), 'mm/dd -HHAM'))})
     end
 
 end
