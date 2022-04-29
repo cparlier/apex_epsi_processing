@@ -54,8 +54,10 @@ set(ax_raw(1, 1), 'XTick', [-0.025 0 0.025]);
 set(ax_raw(1, 2), 'XTick', [1.1 1.2 1.3]);
 set(ax_raw(1, 3), 'XTick', [-0.06 -0.03 -0]);
 set(ax_raw(1, 4), 'XTick', [0.05 0.07 0.09]);
+set(ax_raw(1, 5), 'XLim', [10^-10 10^-6]);
 set(ax_raw(1, 5), 'XTick', [10^-10 10^-8 10^-6]);
-set(ax_raw(1, 6), 'XTick', [10^-9 10^-7 10^-5]);
+set(ax_raw(1, 6), 'XLim', [10^-10, 10^-6])
+set(ax_raw(1, 6), 'XTick', [10^-9 10^-8 10^-7]);
 
 if save_flag
     for i = 1:length(fig_raw)
@@ -125,11 +127,13 @@ targets = [150, 300, 1200];
 [fig_tg_spectra, ax_tg_spectra] = plot_tg_batchelor_select_bins(profile(1), targets);
 ax_tg_spectra(1).FontSize = 14;
 ax_tg_spectra(2).FontSize = 14;
+ax_tg_spectra(1).XLim = [10^-10, 10^-6];
 ax_tg_spectra(2).XLim = [.3 500];
 ax_tg_spectra(2).YLim = [10^-6 .05];
-% if save_flag
-%     savefig(fig_tg_spectra, 'figs/tempgradient_standalone')
-% end
+grid(ax_tg_spectra, 'on');
+if save_flag
+    savefig(fig_tg_spectra, 'figs/tempgradient_standalone')
+end
 
 
 

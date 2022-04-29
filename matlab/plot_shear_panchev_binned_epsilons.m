@@ -52,7 +52,7 @@ function [fig, ax] = plot_shear_panchev_binned_epsilons(profile, targets, range,
             accel_spec(j, :) = accel_spec(j, :)./(abs(w(j))*g^2);
             coh(j, :) = coh(j, :)./sum(num_inrange);
         end
-        spec(j) = loglog(k_spec(j, 3:end), shear_spec(j, 3:end));
+        spec(j) = loglog(k_spec(j, 4:end), shear_spec(j, 4:end), 'LineWidth',2);
         hold on
         ax(1) = gca;
         color = get(spec(j), 'Color');
@@ -70,6 +70,7 @@ function [fig, ax] = plot_shear_panchev_binned_epsilons(profile, targets, range,
             legend_array{2*j - 1} = sprintf('%.3g < log_{10}\\epsilon < %.2g', log10(range(j, 1)), log10(range(j, end)));
         end
         legend_array{2*j} = '';
+        grid on
     
     end
     ylim([10^-7 .1])
@@ -88,7 +89,7 @@ function [fig, ax] = plot_shear_panchev_binned_epsilons(profile, targets, range,
         ax(3) = nexttile;
         for j = 1:length(targets)
             set(gcf, 'CurrentAxes', ax(2));
-            loglog(k_spec(j, 2:end), accel_spec(j, 2:end));
+            loglog(k_spec(j, 2:end), accel_spec(j, 2:end), 'LineWidth',2);
             hold on
             if targets(j) <= 10^-10;
                 accel_legend{j} = 'log_{10}\epsilon = -10';
@@ -96,15 +97,17 @@ function [fig, ax] = plot_shear_panchev_binned_epsilons(profile, targets, range,
                 accel_legend{j} = sprintf('%.3g < log_{10}\\epsilon < %.2g', log10(range(j, 1)), log10(range(j, end)));
             end
             set(gcf, 'CurrentAxes', ax(3));
-            semilogx(k_spec(j, :), coh(j, :));
+            semilogx(k_spec(j, :), coh(j, :), 'LineWidth',2);
             hold on
         end
         nexttile(1);
+        grid on
         legend(accel_legend);
-        xticks([]);
+%         xticks([]);
         ylabel('\Phi_{a3} (s^{-2}/cpm)')
         title({'APEX-epsi standalone deployment', 'binned acceleration wavenumber spectra'})
         nexttile(2);
+        grid on
         ylabel('a3-shear coherence')
         linkaxes(ax(2:3), 'x');
         xlim([min(k_spec, [], 'all') max(k_spec, [], 'all')])

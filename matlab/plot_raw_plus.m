@@ -18,6 +18,7 @@ function [fig, ax] = plot_raw_plus(profile)
         set(gca, 'YDir', 'reverse')
         title('s')
         xticks([-.25 0 .25])
+        grid on
         % T
         nexttile
         plot(profile(i).epsi.t2_volt, z_epsi);
@@ -26,7 +27,7 @@ function [fig, ax] = plot_raw_plus(profile)
         set(gca, 'YDir', 'reverse')
         title('T')
         yticks([]);
-
+        grid on
         % a3
         nexttile
         plot(profile(i).epsi.a3_g, z_epsi);
@@ -35,6 +36,7 @@ function [fig, ax] = plot_raw_plus(profile)
         set(gca, 'YDir', 'reverse')
         title('a3')
         yticks([]);
+        grid on
         % rise rate
         nexttile
         plot(abs(profile(i).w), profile(i).z);
@@ -43,6 +45,7 @@ function [fig, ax] = plot_raw_plus(profile)
         set(gca, 'YDir', 'reverse')
         title('Rise Rate')
         yticks([]);
+        grid on
         % epsilon
         mask = profile(i).epsilon(:, 2) > 1e-10;
         if isfield(profile(i), 'pump')

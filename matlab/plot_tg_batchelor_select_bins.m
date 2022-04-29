@@ -4,7 +4,7 @@ function [fig, ax] = plot_tg_batchelor_select_bins(profile, targets)
 %   Detailed explanation goes here
 %     idx = NaN(length(targets), length(profile));
 %     legend_array = cell(1, length(targets)*2);
-    legend_array = cell(length(targets)*2, 1);
+    legend_array = cell(length(targets)*3, 1);
     fig = figure;
     t = tiledlayout(3, 4, 'TileSpacing','compact');
     nexttile(1, [3, 1]);
@@ -20,19 +20,24 @@ function [fig, ax] = plot_tg_batchelor_select_bins(profile, targets)
     grid on
     nexttile(2, [3, 3]);
     ax(2) = gca;
+    styles = {'-', '--', '-.'};
     for j = 1:length(targets)
         chi = profile.chi(targets(j), 2);
         axes(ax(1));
         star = plot(chi, profile.z(targets(j)), 'Marker','o');
         set(star, 'MarkerFaceColor', get(star, 'Color'));
         axes(ax(2));
-        loglog(profile.k(targets(j), :), profile.Pt_Tg_k.t2(targets(j), :), 'Color',get(star, 'Color'))
+        loglog(profile.k(targets(j), :), profile.Pt_Tg_k.t2(targets(j), :),...
+            'Color',get(star, 'Color'), 'LineStyle','--')
         hold on
+        loglog(profile.k(targets(j), :), smooth(profile.Pt_Tg_k.t2(targets(j), :)),...
+            'Color',get(star, 'Color'), 'LineWidth',2)
         kappa = kt(profile.s(targets(j)), profile.t(targets(j)), profile.pr(targets(j)));
         [k_batch, spec_batch] = batchelor(profile.epsilon(targets(j), 2), chi, profile.kvis(targets(j)), kappa);
-        loglog(k_batch, spec_batch, 'Color',get(star, 'Color'), 'LineStyle','--')
-        legend_array{2*j - 1} = sprintf('Observed Spectrum - %.3g m', profile.z(targets(j)));
-        legend_array{2*j} = sprintf('Batchelor - \\chi = %.2g, \\epsilon = %.2g', chi, profile.epsilon(targets(j), 2));
+        loglog(k_batch, spec_batch, 'k', 'LineStyle',styles(j))
+        legend_array{3*j - 2} = '';
+        legend_array{3*j - 1} = sprintf('Smoothed Observed Spectrum - %.3g m', profile.z(targets(j)));
+        legend_array{3*j} = sprintf('Batchelor - \\chi = %.2g, \\epsilon = %.2g', chi, profile.epsilon(targets(j), 2));
     end
     legend(legend_array, 'Location', 'best', 'AutoUpdate', 'off');
     xlabel('wavenumber (cpm)')
