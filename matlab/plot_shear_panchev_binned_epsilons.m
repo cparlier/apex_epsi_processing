@@ -52,7 +52,7 @@ function [fig, ax] = plot_shear_panchev_binned_epsilons(profile, targets, range,
             accel_spec(j, :) = accel_spec(j, :)./(abs(w(j))*g^2);
             coh(j, :) = coh(j, :)./sum(num_inrange);
         end
-        spec(j) = loglog(k_spec(j, 2:end), shear_spec(j, 2:end));
+        spec(j) = loglog(k_spec(j, 3:end), shear_spec(j, 3:end));
         hold on
         ax(1) = gca;
         color = get(spec(j), 'Color');

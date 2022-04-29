@@ -3,7 +3,7 @@ function [fig, ax] = plot_epsilon_profiles(profile)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
     fig = figure;
-    fs = 14;
+    fs = 18;
     tiledlayout(1, 4, 'TileSpacing','none')
     for i = 1:length(profile)
         mask = profile(i).epsilon(:, 2) > 1e-10;
@@ -22,10 +22,11 @@ function [fig, ax] = plot_epsilon_profiles(profile)
             set(gca, 'YTick', [])
         end
         set(gca, 'YDir', 'reverse')
-        ax(i).XTick = [10^-10 10^-6];
+        ax(i).XTick = [10^-10 10^-8 10^-6];
         xlabel('\epsilon (W/kg)')
         title({sprintf('Profile %d', 6 + i), datestr(mean(profile(i).dnum, 'omitnan'), 'mm/dd-HHAM')})
         ax(i).FontSize = fs;
+        grid on;
     end
     linkaxes(ax(1:end), 'xy');
     ylabel(ax(1), 'Depth(m)')

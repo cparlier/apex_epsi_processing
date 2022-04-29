@@ -3,7 +3,7 @@ function [fig, ax] = plot_chi_profiles(profile)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
     fig = figure;
-    fs = 14;
+    fs = 18;
     tiledlayout(1, 4, 'TileSpacing','none')
     for i = 1:length(profile)
         mask = profile(i).chi(:, 2) > 1e-12;
@@ -19,6 +19,8 @@ function [fig, ax] = plot_chi_profiles(profile)
         xlabel('\chi (K^2/s)')
         title({sprintf('Profile %d', 6 + i), datestr(mean(profile(i).dnum, 'omitnan'), 'mm/dd-HHAM')})
         ax(i).FontSize = fs;
+        xticks([10^-10, 10^-8, 10^-6]);
+        grid on;
     end
     linkaxes(ax(1:end), 'xy');
     ylabel(ax(1), 'Depth(m)')
