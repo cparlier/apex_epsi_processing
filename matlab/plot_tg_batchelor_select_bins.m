@@ -43,5 +43,5 @@ function [fig, ax] = plot_tg_batchelor_select_bins(profile, targets)
     xlabel('wavenumber (cpm)')
     ylabel('\Phi_{Tg} (K^{2}m^{-2}/cpm)')
     title(t, {sprintf('APEX-epsi standalone deployment profile %d', profile.profNum),...
-        '\chi and temperature gradient wavenumber spectra'}, 'FontSize',14)
+        '\chi and temperature gradient wavenumber spectra'}, 'FontSize',14, 'FontWeight','bold')
 end
