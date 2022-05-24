@@ -18,7 +18,7 @@ for i = 1:6
 end
 
 %% set savefig params
-save_flag = 1;
+save_flag = 0;
 
 %% fix timestamps for profiles (profile.dnum only)
 for i = 1:length(profile)
