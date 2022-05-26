@@ -8,7 +8,7 @@ close all
 clc
 addpath(genpath('C:\Users\cappa\Documents\EPSILOMETER'));
 addpath(genpath('C:\Users\cappa\Documents\local_code\apex_epsi_processing'));
-data = load('processed_data\decimated\SOM_APEX_22_05_23_113752.mat');
+data = load('processed_data\decimated\SOM_APEX_22_05_24_203844.mat');
 apf = data.apf;
 clear data;
 
@@ -30,7 +30,7 @@ ylabel('\Phi_{shear} (s^{-2}/cpm)')
 title('shear spectra')
 
 %% calc epsilon and plot
-kvis = 1.0e-6;
+kvis = 1.5e-6;
 kmax = 100;
 for i = 1:length(apf.epsilon)
     [eps_dec(i), kc_dec(i)] = eps1_mmp(k(i, :), apf.avg_shear_k(i, :), kvis, kmax);
