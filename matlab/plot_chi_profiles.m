@@ -7,6 +7,9 @@ function [fig, ax] = plot_chi_profiles(profile)
     tiledlayout(1, 4, 'TileSpacing','none')
     for i = 1:length(profile)
         mask = profile(i).chi(:, 2) > 1e-12;
+        if isfield(profile(i), 'pump')
+            mask = mask & ~(profile(i).pump.flag);
+        end
         chi_plot = profile(i).chi(:, 2);
         chi_plot(~mask) = NaN;
         nexttile
@@ -21,6 +24,13 @@ function [fig, ax] = plot_chi_profiles(profile)
         ax(i).FontSize = fs;
         xticks([10^-10, 10^-8, 10^-6]);
         grid on;
+        if isfield(profile(i), 'pump')
+            hold on;
+            semilogx(profile(i).pump.flag*10^-10, profile(i).z(:), 'r+');
+            if i == length(profile)
+                legend('', 'buoyancy pump operational')
+            end
+        end
     end
     linkaxes(ax(1:end), 'xy');
     ylabel(ax(1), 'Depth(m)')

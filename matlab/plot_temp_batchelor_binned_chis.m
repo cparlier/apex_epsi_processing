@@ -12,10 +12,23 @@ function [fig, ax] = plot_temp_batchelor_binned_chis(profile, targets, range)
     kappa_spec = zeros(length(targets));
     epsilon_spec = zeros(length(targets));
     num_inrange = nan(length(profile), 1);
+    epsilon_bins = 10.^(-10:.2:-6);
     for j = 1:length(targets)
+        num_in_eps_bin = zeros(length(epsilon_bins), 1);
         for i = 1:length(profile)
             mask = profile(i).chi(:, 2) > 1e-10;
             mask = mask & (profile(i).chi(:, 2) > target_range(j, 1)) & (profile(i).chi(:, 2) < target_range(j, end));
+            for m = 1:length(epsilon_bins) - 1
+                temp_num = (profile(i).epsilon(mask, 2) > epsilon_bins(m)) & (profile(i).epsilon(mask, 2) < epsilon_bins(m + 1));
+                num_in_eps_bin(m) = num_in_eps_bin(m) + sum(temp_num);
+            end
+        end
+        [val, idx] = max(num_in_eps_bin);
+        eps_lim = [epsilon_bins(idx), epsilon_bins(idx + 1)];
+        for i = 1:length(profile)
+            mask = profile(i).chi(:, 2) > 1e-10;
+            mask = mask & (profile(i).chi(:, 2) > target_range(j, 1)) & (profile(i).chi(:, 2) < target_range(j, end));
+            mask = mask & (profile(i).epsilon(:, 2) > eps_lim(1)) & (profile(i).epsilon(:, 2) < eps_lim(2));
             temp_spec = profile(i).Pt_Tg_k.t2(mask, :);
             temp_k = profile(i).k(mask, :);
             temp_kvis = profile(i).kvis(mask);
@@ -33,7 +46,7 @@ function [fig, ax] = plot_temp_batchelor_binned_chis(profile, targets, range)
         kvis_spec(j) = kvis_spec(j)/sum(num_inrange);
         kappa_spec(j) = kappa_spec(j)/sum(num_inrange);
         epsilon_spec(j) = epsilon_spec(j)/sum(num_inrange);
-        spec(j) = loglog(k_spec(j, 2:end), tg_spec(j, 2:end));
+        spec(j) = loglog(k_spec(j, 4:end), tg_spec(j, 4:end));
         hold on
         ax = gca;
         color = get(spec(j), 'Color');
@@ -45,7 +58,7 @@ function [fig, ax] = plot_temp_batchelor_binned_chis(profile, targets, range)
             [val, idx] = min(abs((x_start + x_start*buffer) - k_batch));
             text(x_start + x_start*buffer, spec_batch(idx), sprintf('\\chi = 10^{%.2g}', log10(targets(j))), 'VerticalAlignment','bottom')
         end
-        legend_array{2*j - 1} = sprintf('%.3g < log_{10}\\chi < %.2g', log10(range(j, 1)), log10(range(j, end)));
+        legend_array{2*j - 1} = sprintf('%.3g < log_{10}\\chi < %.3g', log10(range(j, 1)), log10(range(j, end)));
         legend_array{2*j} = '';
     
     end
